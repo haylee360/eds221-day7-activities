@@ -36,6 +36,43 @@ birds_subset <- bird_observations %>%
 
 ```{r}
 # left join ----
-left_join(birds_subset, )
+birds_left <- birds_subset %>%
+  left_join(sites, join_by(site_id)) %>% 
+  left_join(taxalist, join_by(species_id))
+```
+
+A full join between birds_subset and sites should contain all rows from sites that match birds_subset by site_id.
+
+```{r}
+# Full join ----
+birds_full <- full_join(birds_subset, sites, join_by(site_id))
+```
+
+## Data wrangling and visualization with birds
+
+```{r}
+# bird_observations <- bird_observations %>% 
+  # rename(birds_obs_notes = notes) 
+
+birds_clean <- bird_observations %>% 
+  left_join(taxalist, join_by(species_id)) %>%
+  left_join(sites, join_by(site_id)) %>% 
+  left_join(surveys, join_by(survey_id)) %>% 
+  select(survey_date, common_name, park_name, bird_count)
+# warning message about many-to-many relationship between x and y in left join of surveys
+```
+
+```{r}
+# lubridate ----
+birds_clean <- birds_clean %>% 
+  mutate(survey_month = month(survey_date)) %>% 
+  mutate(survey_month = as.factor(survey_month)) %>% 
+  relocate(survey_month, .after = survey_date)
+
+birds_grouped <- birds_clean %>% 
+  group_by(park_name, survey_month) %>% 
+  summarise(count = n()) %>% 
+  filter(park_name %in% c("Lindo", "Orme", "Palomino", "Sonrisa"))
+
 ```
 
